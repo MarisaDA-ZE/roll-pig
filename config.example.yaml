@@ -1,0 +1,19 @@
+# 复制为工作目录中的 config.yaml 后使用，环境变量优先于此文件中的配置。
+server:
+  host: 0.0.0.0
+  port: 3000
+  trustProxy: false
+
+roll:
+  timezone: Asia/Shanghai
+  # 生产环境请使用私有且稳定的密钥，也可通过 ROLL_SECRET 环境变量设置。
+  secret: change-me
+
+assets:
+  baseUrl: ""
+
+limits:
+  maxConcurrency: 64
+  maxQueueSize: 128
+  queueTimeoutMs: 3000
+  requestTimeoutMs: 5000

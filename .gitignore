@@ -4,8 +4,11 @@ coverage/
 .env
 .env.*
 !.env.example
+/config.yaml
 *.log
 .idea/
 .vscode/
-/docs/**
+/docs
+/tests
+tsconfig.test.json
 

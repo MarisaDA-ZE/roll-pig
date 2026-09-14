@@ -1,12 +1,17 @@
-import { app } from './app.js';
+import { createApp } from './app.js';
+import { ConfigError, loadConfig } from './config.js';
 
-const port = Number(process.env.SERVER_PORT ?? 3000);
-const host = process.env.SERVER_HOST ?? '0.0.0.0';
-
-if (!Number.isInteger(port) || port < 1 || port > 65535) {
-  throw new Error('SERVER_PORT must be an integer between 1 and 65535.');
+try {
+  const config = loadConfig();
+  const app = createApp(config);
+  const { host, port } = config.server;
+  app.listen(port, host, () => {
+    console.log(`Rollpig listening on ${host}:${port}`);
+  }).on('error', () => {
+    console.error('Unable to listen on the configured server address.');
+    process.exitCode = 1;
+  });
+} catch (error) {
+  console.error(error instanceof ConfigError ? error.message : 'Unable to start Rollpig.');
+  process.exitCode = 1;
 }
-
-app.listen(port, host, () => {
-  console.log(`Rollpig listening on http://${host}:${port}`);
-});
