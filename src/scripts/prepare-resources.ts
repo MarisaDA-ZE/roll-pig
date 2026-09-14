@@ -1,3 +1,17 @@
+/**
+ * 素材导入命令入口，将资源包中的猪猪数据、原图和字体整理到 resources。
+ *
+ * @remarks
+ * 第一个位置参数为资源包目录，默认使用 temp/resource；输入需包含 pig.json、
+ * image 和 font 目录。按图片文件头确定输出扩展名。
+ * 写入前检查已有文件是否一致，只补充缺失文件或填充空清单；
+ * 失败时输出错误并将进程退出码设为 1。
+ *
+ * @example
+ * ```sh
+ * pnpm resources:prepare temp/resource
+ * ```
+ */
 import { constants, copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import {

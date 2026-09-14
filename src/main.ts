@@ -1,3 +1,10 @@
+/**
+ * Rollpig 服务入口：加载配置与成品清单，监听 HTTP 请求并处理退出信号。
+ *
+ * @remarks
+ * 缺失成品资源时仍启动服务并报告未就绪；配置错误或损坏的清单阻止启动。
+ * 启动失败将进程退出码设为 1，SIGINT 和 SIGTERM 共用优雅退出流程。
+ */
 import { ConfigError, loadConfig } from './config.js';
 import { createHttpService } from './http/server.js';
 import { writeLog } from './http/logging.js';

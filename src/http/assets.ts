@@ -4,6 +4,19 @@ import { resourceFile } from '../modules/rollpig/catalog.js';
 import type { Catalog } from '../modules/rollpig/types.js';
 import { HttpError } from './errors.js';
 
+/**
+ * 创建仅开放运行清单中成品图片的静态资源路由。
+ *
+ * @remarks
+ * 挂载到 `/assets/pigs`。创建时检查已登记文件的路径，响应使用一年的
+ * immutable 缓存策略，并支持 HEAD、条件请求和字节范围请求。
+ *
+ * @param resourcesRoot - 包含 rendered 目录的资源根目录。
+ * @param catalog - 已加载的运行清单；省略时不开放任何图片。
+ * @returns 按文件名白名单提供成品 PNG 的 Express 路由。
+ * @throws CatalogError
+ * 已登记图片缺失或资源路径校验失败。
+ */
 export function createAssetsRouter(resourcesRoot: string, catalog?: Catalog) {
   const router = Router();
   const renderedRoot = resolve(resourcesRoot, 'rendered');

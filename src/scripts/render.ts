@@ -1,3 +1,15 @@
+/**
+ * 成品渲染命令入口，生成图片和运行清单并输出生成数量。
+ *
+ * @remarks
+ * 第一个位置参数为资源目录，默认使用 resources；第二个为可选字体文件名。
+ * 失败时输出错误并将进程退出码设为 1。
+ *
+ * @example
+ * ```sh
+ * pnpm resources:render resources 可爱字体.ttf
+ * ```
+ */
 import { resolve } from 'node:path';
 import { CatalogError } from '../modules/rollpig/catalog.js';
 import { renderResources } from '../render/build.js';

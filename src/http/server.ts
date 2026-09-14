@@ -9,10 +9,26 @@ import { errorBody, HttpError, sendError } from './errors.js';
 import { transportDefaults, type TransportLimits } from './limits.js';
 import { recordError, writeLog, type LogSink } from './logging.js';
 
+/**
+ * 创建具有连接保护、请求调度和优雅退出能力的 HTTP 服务。
+ *
+ * @remarks
+ * 返回的服务尚未监听端口，由调用方执行 listen 并绑定进程信号。
+ * HTTP 解析阶段的错误也使用固定错误信息；已有响应传输时直接关闭异常连接。
+ *
+ * @param config - 已通过校验的完整运行配置。
+ * @param catalog - 已校验资源文件的运行清单，缺省时由接口报告未就绪。
+ * @param options - 资源目录、时钟、日志和连接参数的注入选项。
+ * @returns HTTP server、可重复调用的 shutdown 方法及共用的请求并发控制器。
+ */
 export function createHttpService(config: Config, catalog?: Catalog, options: {
+  /** 资源根目录，默认使用工作目录下的 resources。 */
   resourcesRoot?: string;
+  /** 抽取服务的时钟，默认读取系统时间。 */
   now?: () => Date;
+  /** 请求和服务生命周期日志的接收函数，默认输出到标准输出。 */
   log?: LogSink;
+  /** 程序内覆盖固定连接参数，主要用于测试；接收超时应保持 Header 不大于完整请求。 */
   transport?: Partial<TransportLimits>;
 } = {}) {
   const log = options.log ?? writeLog;
@@ -20,6 +36,7 @@ export function createHttpService(config: Config, catalog?: Catalog, options: {
   const gate = createRequestGate(config.limits);
   const app = createApp(config, catalog, { ...options, transport, gate, log });
   const sockets = new Set<Socket>();
+  // 同一连接可能存在多个流水线响应，需要逐一跟踪尚未传输完成的响应。
   const responses = new Map<Socket, Set<ServerResponse>>();
   const invalidSockets = new WeakSet<Socket>();
   const server = createServer({
@@ -88,6 +105,11 @@ export function createHttpService(config: Config, catalog?: Catalog, options: {
   });
 
   let stopping: Promise<void> | undefined;
+  /**
+   * 停止准入并等待活动连接结束，超过退出期限后强制关闭剩余连接。
+   *
+   * @returns 在服务关闭回调触发时完成的 Promise；重复调用返回同一个 Promise。
+   */
   function shutdown(): Promise<void> {
     if (stopping) return stopping;
     stopping = new Promise<void>((done) => {
