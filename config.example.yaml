@@ -13,7 +13,14 @@ assets:
   baseUrl: ""
 
 limits:
+  # 所有接口和静态图片共用活动名额；图片传输完成后才释放。
   maxConcurrency: 64
+  # 等待队列容量，设为 0 时不排队。
   maxQueueSize: 128
   queueTimeoutMs: 3000
+  # 从获得名额开始计时，包含请求体接收和响应传输。
   requestTimeoutMs: 5000
+  # URL、Header 和 Body 的大小以字节为单位。
+  maxUrlBytes: 2048
+  maxHeaderBytes: 16384
+  maxBodyBytes: 16384

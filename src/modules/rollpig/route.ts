@@ -65,10 +65,6 @@ export function createDailyPigRouter(
       acceptRanges: false,
     }, (error) => {
       if (!error || res.destroyed) return;
-      if (res.headersSent) {
-        res.destroy();
-        return;
-      }
       const code = (error as NodeJS.ErrnoException).code;
       next(code === 'ENOENT' || code === 'ENOTDIR' || code === 'EISDIR'
         ? new HttpError('CATALOG_NOT_READY') : error);

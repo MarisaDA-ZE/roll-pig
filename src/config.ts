@@ -14,6 +14,9 @@ const defaults = {
     maxQueueSize: 128,
     queueTimeoutMs: 3000,
     requestTimeoutMs: 5000,
+    maxUrlBytes: 2048,
+    maxHeaderBytes: 16384,
+    maxBodyBytes: 16384,
   },
 };
 
@@ -48,6 +51,7 @@ const baseUrlSchema = z.string().refine((value) => {
   .transform((value) => value.replace(/\/+$/, ''));
 
 const timeoutSchema = z.number().int().min(1).max(2_147_483_647);
+const sizeSchema = z.number().int().min(1).max(2_147_483_647);
 const serverSchema = z.strictObject({
   host: hostSchema,
   port: z.number().int().min(1).max(65535),
@@ -63,6 +67,9 @@ const limitsSchema = z.strictObject({
   maxQueueSize: z.number().int().min(0),
   queueTimeoutMs: timeoutSchema,
   requestTimeoutMs: timeoutSchema,
+  maxUrlBytes: sizeSchema,
+  maxHeaderBytes: sizeSchema,
+  maxBodyBytes: sizeSchema,
 });
 const configSchema = z.strictObject({
   server: serverSchema,
@@ -135,6 +142,9 @@ const envKeys = {
     maxQueueSize: 'LIMITS_MAX_QUEUE_SIZE',
     queueTimeoutMs: 'LIMITS_QUEUE_TIMEOUT_MS',
     requestTimeoutMs: 'LIMITS_REQUEST_TIMEOUT_MS',
+    maxUrlBytes: 'LIMITS_MAX_URL_BYTES',
+    maxHeaderBytes: 'LIMITS_MAX_HEADER_BYTES',
+    maxBodyBytes: 'LIMITS_MAX_BODY_BYTES',
   },
 } as const;
 

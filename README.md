@@ -40,12 +40,37 @@ pnpm start
 | `limits.maxQueueSize` | `LIMITS_MAX_QUEUE_SIZE` | `128` |
 | `limits.queueTimeoutMs` | `LIMITS_QUEUE_TIMEOUT_MS` | `3000` |
 | `limits.requestTimeoutMs` | `LIMITS_REQUEST_TIMEOUT_MS` | `5000` |
+| `limits.maxUrlBytes` | `LIMITS_MAX_URL_BYTES` | `2048` |
+| `limits.maxHeaderBytes` | `LIMITS_MAX_HEADER_BYTES` | `16384` |
+| `limits.maxBodyBytes` | `LIMITS_MAX_BODY_BYTES` | `16384` |
 
 端口范围为 1–65535，时区填写 `Asia/Shanghai`、`UTC` 等命名时区。布尔环境变量使用 `true` 或 `false`，整数使用十进制数字。
 
 `roll.secret` 是计算每日结果的服务端密钥。部署时设置为固定、非空的私有字符串。
 
 `assets.baseUrl` 可留空，或填写不含凭据、查询参数和片段标识的 HTTP(S) 地址。环境变量设为空字符串时覆盖配置文件中的地址。
+
+## 请求限制
+
+所有接口和静态图片共用 `limits.maxConcurrency` 个活动名额。名额占满后，请求按先入先出的顺序等待，最多保留 `limits.maxQueueSize` 个；设为 `0` 时直接拒绝超出并发上限的请求。
+
+排队时间受 `limits.queueTimeoutMs` 限制。获得名额后，`limits.requestTimeoutMs` 覆盖请求体接收、业务处理和响应传输，图片开始发送后仍占用名额。请求结束或连接断开时释放名额。
+
+队列已满、排队超时或处理超时返回 `503`，附带 `Retry-After: 2`。已经开始发送响应时，超时会关闭连接。
+
+`limits.maxUrlBytes`、`limits.maxHeaderBytes` 和 `limits.maxBodyBytes` 分别限制 URL 长度、Header 总大小和 Body 大小，单位为字节，取值为 1–2147483647 的整数。
+
+HTTP 连接使用以下固定限制：
+
+| 项目 | 限制 |
+| --- | --- |
+| Header 数量 | 100 个 |
+| Header 接收期限 | 10 秒 |
+| 完整请求接收期限 | 15 秒 |
+| 连接无数据传输期限 | 10 秒 |
+| Keep-alive 空闲期限 | 5 秒 |
+
+接口通过查询参数接收身份信息，请求体仅在大小限制内读取并丢弃。
 
 ## 接口
 
@@ -125,10 +150,27 @@ CDN 前缀保留其中的路径，末尾斜线自动移除。本地 `/assets/pig
 | `400` | `INVALID_NAMESPACE` / `INVALID_USER_ID` | 身份参数不符合格式要求 |
 | `400` | `INVALID_URL` / `INVALID_REQUEST` | URL 编码或请求格式错误 |
 | `404` | `NOT_FOUND` | 路由或图片不存在 |
+| `408` | `RECEIVE_TIMEOUT` | 请求接收超时 |
 | `412` | `PRECONDITION_FAILED` | 图片请求的前置条件不成立 |
+| `413` | `BODY_TOO_LARGE` | 请求体超过大小限制 |
+| `414` | `URL_TOO_LONG` | URL 超过长度限制 |
 | `416` | `RANGE_NOT_SATISFIABLE` | 请求的字节范围超出图片大小 |
+| `417` | `EXPECTATION_FAILED` | 不支持的 Expect 请求头 |
+| `431` | `HEADERS_TOO_LARGE` | Header 大小或数量超过限制 |
 | `503` | `CATALOG_NOT_READY` | 猪猪资源未就绪，或图片直出所需的成品缺失 |
+| `503` | `QUEUE_FULL` | 活动名额和等待队列已满 |
+| `503` | `QUEUE_TIMEOUT` | 排队超时 |
+| `503` | `REQUEST_TIMEOUT` | 处理或响应传输超时 |
+| `503` | `SHUTTING_DOWN` | 服务正在退出 |
 | `500` | `INTERNAL_ERROR` | 服务内部错误 |
+
+## 日志与退出
+
+日志以每行一个 JSON 对象写入标准输出。请求日志包含 `requestId`、`method`、`path`、`status`、`duration`、`queueWaitMs` 和 `errorCode`，耗时单位为毫秒。服务端生成的请求 ID 同时放在响应头 `X-Request-Id` 中。
+
+`path` 使用固定路由名称，静态图片记为 `/assets/pigs/:filename`，未知路径记为 `/[unknown]`；查询参数和请求头内容不写入日志。连接在响应前断开时，日志状态记为 `499`；传输中断通过 `errorCode` 标识。
+
+收到 `SIGINT` 或 `SIGTERM` 后，服务停止接收新连接，拒绝排队请求，并等待活动请求完成。等待 10 秒后关闭剩余连接并退出。
 
 ## 素材
 
