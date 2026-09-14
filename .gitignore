@@ -9,6 +9,8 @@ coverage/
 .idea/
 .vscode/
 /docs
+/temp
+/resources/rendered/
 /tests
 tsconfig.test.json
 

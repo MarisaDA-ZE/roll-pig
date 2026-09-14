@@ -1,22 +1,22 @@
 # Rollpig
 
-基于 Node.js 24、TypeScript 和 Express 5 的每日小猪 HTTP API 项目。
-当前已完成工程初始化与配置管理，抽取玩法及资源保护尚待实现。
+基于 Node.js 24、TypeScript 和 Express 5 的可自托管每日小猪 HTTP API 项目。
 
-## 本地开发
+## 运行
+
+需要 Node.js 24 和 pnpm 10。
 
 ```bash
 pnpm install
-pnpm dev
+pnpm build
+pnpm start
 ```
 
-默认监听 `0.0.0.0:3000`，可通过 `SERVER_HOST`、`SERVER_PORT` 环境变量覆盖。
+默认监听 `0.0.0.0:3000`。开发时使用 `pnpm dev`，文件修改后会自动重启；`pnpm typecheck` 用于检查 TypeScript 类型。
 
 ## 配置
 
-配置优先级从低到高为：内置默认值 → 当前工作目录的 `config.yaml` → 环境变量。
-可以将 `config.example.yaml` 复制为 `config.yaml` 后修改；不提供配置文件也能启动，无需数据库或其他外围服务。
-本地 `config.yaml` 已被 Git 忽略。
+将 [config.example.yaml](./config.example.yaml) 复制为工作目录下的 `config.yaml`，按需修改。未填写的配置使用默认值，环境变量优先于配置文件。
 
 | 配置项 | 环境变量 | 默认值 |
 | --- | --- | --- |
@@ -31,41 +31,35 @@ pnpm dev
 | `limits.queueTimeoutMs` | `LIMITS_QUEUE_TIMEOUT_MS` | `3000` |
 | `limits.requestTimeoutMs` | `LIMITS_REQUEST_TIMEOUT_MS` | `5000` |
 
-配置规则：
+端口范围为 1–65535，时区填写 `Asia/Shanghai`、`UTC` 等命名时区。布尔环境变量只接受 `true`、`false`，整数使用十进制数字。配置有误时，服务会报错并退出。
 
-- 配置文件可以只填写部分字段；未知字段、非法结构或 YAML 语法错误会阻止启动。字段值在环境变量覆盖后统一校验。
-- YAML 中端口及资源限制使用整数，`trustProxy` 使用布尔值；环境变量中的布尔值仅接受 `true`、`false`，整数仅接受十进制数字字符串。
-- 监听地址支持 IPv4、IPv6 或主机名；端口范围为 1–65535。默认不信任代理转发信息。
-- 时区使用有效的命名时区，例如 `Asia/Shanghai` 或 `UTC`，不依赖宿主机时区。
-- secret 不允许为空或全空白。使用默认值时启动日志输出警告，但不输出 secret 内容。生产环境应设置私有且稳定的 secret；其变化会影响后续实现的每日抽取映射。
-- 资源 URL 前缀为空或 HTTP(S) URL，可包含路径前缀，不允许凭据、查询参数或 fragment，末尾斜杠会被移除。`ASSETS_BASE_URL` 设为空字符串可清除文件中的前缀。
-- 并发上限至少为 1，队列长度可为 0；超时范围为 1–2147483647 毫秒。其他字段的空环境变量不会退回默认值，而会校验失败。
+`secret` 不能为空。部署时请替换默认值；使用默认值会在启动时输出警告。
 
-当前启动入口已应用监听地址、端口和代理配置。时区、secret、资源前缀和资源限制已可加载及校验，将由后续业务步骤使用；并发保护本身尚未实现。
+`assets.baseUrl` 可留空，或填写 HTTP(S) 地址，不能包含用户名、密码、查询参数或片段标识。设为空字符串可清除配置文件中的地址。
 
-## 当前接口
+## 接口
 
 | 请求 | 响应 |
 | --- | --- |
 | `GET /` | `{"message":"Hello, Rollpig!"}` |
-| `GET /health` | `{"status":"ok"}` |
+| `GET /health` | 成品 catalog 加载成功时返回 `{"status":"ok"}`；缺少成品资源时返回 `503`，错误码为 `CATALOG_NOT_READY` |
 
-## 构建与运行
+## 素材
+
+将猪猪数据、图片和字体按[素材说明](./resources/README.md)整理后导入：
 
 ```bash
-pnpm typecheck
-pnpm build
-pnpm start
+pnpm resources:prepare <原始资源目录>
 ```
 
-开发模式使用 `tsx watch` 自动重启，编译产物输出到 `dist/`。
+省略目录参数时读取 `temp/resource/`。导入会检查数据格式、重复 ID、文件及路径，并根据图片文件头确定扩展名。自定义素材的使用和分发权限由使用者确认。
 
-## 目录
+服务读取 `resources/rendered/pigs.json` 和对应成品图，启动时检查文件及内容哈希。更新资源后需要重启。
 
-```text
-src/
-  app.ts     # Express 应用及示例路由
-  config.ts  # 配置加载、覆盖与校验
-  main.ts    # HTTP 服务启动入口
-docs/        # 项目设计文档
-```
+## 许可与致谢
+
+本项目参考 [MegSopern/astrbot_plugin_rollpig](https://github.com/MegSopern/astrbot_plugin_rollpig)，猪猪数据及素材也引用自该项目。
+
+代码采用 [MIT 许可](./LICENSE)。上游版权声明及许可全文见 [astrbot_plugin_rollpig-MIT.txt](./licenses/astrbot_plugin_rollpig-MIT.txt)。
+
+图片和字体遵循各自的许可，不能因为所在仓库采用 MIT 就直接使用。具体来源和授权记录见[第三方来源说明](./THIRD_PARTY_NOTICES.md)；授权未确认的素材不使用、不分发。

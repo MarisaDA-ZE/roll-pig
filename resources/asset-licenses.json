@@ -1,0 +1,16 @@
+{
+  "entries": [
+    {
+      "path": "pig.json",
+      "sha256": "6246a43607cb92037e2ad3dfdfcc61435886cb85947f92f423c08006d7ea1aab",
+      "gitBlob": "f3324d24ade7313aec69545bdc189b8435a4e41b",
+      "matches": [
+        "https://github.com/MegSopern/astrbot_plugin_rollpig/blob/42490b1b88367260c137c1147b05a3c052f22d33/resource/pig.json"
+      ],
+      "status": "approved",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2025 Bear_lele; Copyright (c) 2025 MegSopern",
+      "notice": "licenses/astrbot_plugin_rollpig-MIT.txt"
+    }
+  ]
+}

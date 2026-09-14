@@ -14,7 +14,8 @@
     "dev": "tsx watch src/main.ts",
     "build": "tsc",
     "start": "node dist/main.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "resources:prepare": "tsx src/scripts/prepare-resources.ts"
   },
   "dependencies": {
     "express": "^5.1.0",
