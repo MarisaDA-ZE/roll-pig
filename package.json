@@ -1,0 +1,19 @@
+{
+  "name": "rollpig",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Self-hosted daily pig HTTP API",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@10.25.0",
+  "engines": { "node": ">=24 <25" },
+  "scripts": {
+    "init": "pnpm install",
+    "dev": "tsx watch src/main.ts",
+    "build": "tsc",
+    "start": "node dist/main.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": { "express": "^5.1.0" },
+  "devDependencies": { "@types/express": "^5.0.0", "@types/node": "^24.0.0", "tsx": "^4.20.0", "typescript": "~5.9.0" }
+}
