@@ -17,3 +17,8 @@ export interface Pig extends PigDetails {
 
 export type SourceCatalog = readonly SourcePig[];
 export type Catalog = readonly Pig[];
+
+export interface RollResult {
+  readonly date: string;
+  readonly pig: Pig;
+}
