@@ -4,11 +4,11 @@
 
 ## 抽取规则
 
-使用 `namespace` 区分平台，以 `userId` 标识用户，例如 `qq:123456`。每日日期按 `roll.timezone` 计算，在该时区的午夜切换。
+用户身份由 `namespace` 和 `userId` 组成，例如 `qq:123456`。业务日期按 `roll.timezone` 计算，每天午夜刷新。
 
-日期、用户身份和 `secret` 通过 HMAC-SHA256 确定猪猪结果。同一天使用相同配置和猪猪库，重复抽取、服务重启或切换实例都得到相同结果，无需保存用户记录。不同日期也可能抽到同一只猪。
+抽取采用 HMAC-SHA256，由业务日期、用户身份、`secret` 和猪猪库共同决定。同一用户在同一业务日期的结果固定，跨日也可能重复。
 
-更换 `secret` 或猪猪库可能改变结果，多实例部署应使用一致的配置和资源。
+多实例部署使用相同的时区、`secret` 和猪猪库。更新密钥或猪猪库可能改变抽取结果。
 
 ## 运行
 
@@ -20,7 +20,9 @@ pnpm build
 pnpm start
 ```
 
-默认监听 `0.0.0.0:3000`。开发时使用 `pnpm dev`，文件修改后会自动重启；`pnpm typecheck` 用于检查 TypeScript 类型。
+构建命令编译代码并生成成品图，服务默认监听 `0.0.0.0:3000`。
+
+开发模式使用 `pnpm dev`，支持文件修改后自动重启。类型检查使用 `pnpm typecheck`。
 
 ## 配置
 
@@ -39,30 +41,31 @@ pnpm start
 | `limits.queueTimeoutMs` | `LIMITS_QUEUE_TIMEOUT_MS` | `3000` |
 | `limits.requestTimeoutMs` | `LIMITS_REQUEST_TIMEOUT_MS` | `5000` |
 
-端口范围为 1–65535，时区填写 `Asia/Shanghai`、`UTC` 等命名时区。布尔环境变量只接受 `true`、`false`，整数使用十进制数字。配置有误时，服务会报错并退出。
+端口范围为 1–65535，时区填写 `Asia/Shanghai`、`UTC` 等命名时区。布尔环境变量使用 `true` 或 `false`，整数使用十进制数字。
 
-`secret` 用于服务端计算每日结果，无需由客户端提供，且不能为空。部署时请替换默认值；使用默认值会在启动时输出警告。
+`roll.secret` 是计算每日结果的服务端密钥。部署时设置为固定、非空的私有字符串。
 
-`assets.baseUrl` 可留空，或填写 HTTP(S) 地址，不能包含用户名、密码、查询参数或片段标识。设为空字符串可清除配置文件中的地址。
+`assets.baseUrl` 可留空，或填写不含凭据、查询参数和片段标识的 HTTP(S) 地址。环境变量设为空字符串时覆盖配置文件中的地址。
 
 ## 接口
 
 | 请求 | 响应 |
 | --- | --- |
 | `GET /` | `{"message":"Hello, Rollpig!"}` |
-| `GET /health` | 成品 catalog 加载成功时返回 `{"status":"ok"}`；缺少成品资源时返回 `503`，错误码为 `CATALOG_NOT_READY` |
+| `GET /health` | 就绪时返回 `200 {"status":"ok"}`；资源未就绪时返回 `503`，错误码为 `CATALOG_NOT_READY` |
 
 ## 素材
 
-将猪猪数据、图片和字体按[素材说明](./resources/README.md)整理后导入：
+内置数据、原图和字体位于 `resources/`。自定义素材按[资源包格式](./resources/README.md#导入素材)整理后导入并生成成品图：
 
 ```bash
-pnpm resources:prepare <原始资源目录>
+pnpm resources:prepare <资源包目录>
+pnpm resources:render
 ```
 
-省略目录参数时读取 `temp/resource/`。导入会检查数据格式、重复 ID、文件及路径，并根据图片文件头确定扩展名。自定义素材的使用和分发权限由使用者确认。
+导入目录默认为 `temp/resource/`。成品输出到 `resources/rendered/`，资源更新后重启服务生效。
 
-服务读取 `resources/rendered/pigs.json` 和对应成品图，启动时检查文件及内容哈希。更新资源后需要重启。
+字体选择、卡片规格和清单格式见[素材说明](./resources/README.md)。
 
 ## 许可与致谢
 
@@ -70,4 +73,4 @@ pnpm resources:prepare <原始资源目录>
 
 代码采用 [MIT 许可](./LICENSE)。上游版权声明及许可全文见 [astrbot_plugin_rollpig-MIT.txt](./licenses/astrbot_plugin_rollpig-MIT.txt)。
 
-图片和字体遵循各自的许可，不能因为所在仓库采用 MIT 就直接使用。具体来源和授权记录见[第三方来源说明](./THIRD_PARTY_NOTICES.md)；授权未确认的素材不使用、不分发。
+图片和字体适用各自的许可，来源与版权声明见[第三方声明](./THIRD_PARTY_NOTICES.md)。

@@ -12,10 +12,11 @@
   "scripts": {
     "init": "pnpm install",
     "dev": "tsx watch src/main.ts",
-    "build": "tsc",
+    "build": "tsc && node dist/scripts/render.js",
     "start": "node dist/main.js",
     "typecheck": "tsc --noEmit",
-    "resources:prepare": "tsx src/scripts/prepare-resources.ts"
+    "resources:prepare": "tsx src/scripts/prepare-resources.ts",
+    "resources:render": "tsx src/scripts/render.ts"
   },
   "dependencies": {
     "express": "^5.1.0",
@@ -24,7 +25,10 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
+    "@types/fontkit": "^2.0.9",
     "@types/node": "^24.0.0",
+    "fontkit": "^2.0.4",
+    "sharp": "^0.35.4",
     "tsx": "^4.20.0",
     "typescript": "~5.9.0"
   }
