@@ -1,0 +1,20 @@
+# 仅发送构建所需文件，避免带入本地配置、测试、缓存和成品副本。
+**
+!package.json
+!pnpm-lock.yaml
+!pnpm-workspace.yaml
+!tsconfig.json
+!config.example.yaml
+!src/
+!src/**
+!resources/
+!resources/pigs.json
+!resources/source/
+!resources/source/**
+!resources/fonts/
+!resources/fonts/**
+!resources/asset-licenses.json
+!licenses/
+!licenses/**
+!LICENSE
+!THIRD_PARTY_NOTICES.md

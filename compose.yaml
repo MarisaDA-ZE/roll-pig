@@ -1,0 +1,19 @@
+services:
+  rollpig:
+    image: rollpig:local
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      ROLL_SECRET: ${ROLL_SECRET:-change-me}
+      ASSETS_BASE_URL: ${ASSETS_BASE_URL:-}
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 256m
+    cpus: 1.0
+    # 应用最多等待 10 秒，留出连接清理和进程退出时间。
+    stop_grace_period: 15s
